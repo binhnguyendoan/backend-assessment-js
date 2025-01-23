@@ -2,3 +2,6 @@ name = "ma-project"
 main = "src/index.ts"
 compatibility_date = "2023-04-18"
 compatibility_flags = ["nodejs_compat"]
+
+[vars]
+DATABASE_URL='postgresql://product_db_owner:npg_A0B9mZxIwLsg@ep-restless-mountain-a7xnqw88.ap-southeast-2.aws.neon.tech/product_db?sslmode=require'

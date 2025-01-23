@@ -18,5 +18,8 @@
     "dotenv": "^16.4.7",
     "itty-router": "^5.0.18",
     "node-fetch": "^3.3.2"
-  }
+  },
+  "exclude": [
+    "node_modules"
+  ]
 }
