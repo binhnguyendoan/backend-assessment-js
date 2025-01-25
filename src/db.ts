@@ -1,6 +1,6 @@
 import { Client } from "@neondatabase/serverless";
 import { json } from "itty-router";
-export const createTable = async () => {
+export const createTableProducts = async () => {
     const client = new Client({
         connectionString:
             "postgresql://product_db_owner:npg_A0B9mZxIwLsg@ep-restless-mountain-a7xnqw88.ap-southeast-2.aws.neon.tech/product_db?sslmode=require",
@@ -74,12 +74,6 @@ export const insertProducts = async (product: any) => {
             `,
             [id, fullTitle, Arraytags, sku, created_at, updated_at]
         );
-        return json({
-            success: true,
-            message: "Insert Database successfully",
-        });
-
-
 
     } catch (error: any) {
         throw new Error(`Database error while inserting product: ${error.message || error}`);
@@ -87,3 +81,79 @@ export const insertProducts = async (product: any) => {
         await client.end();
     }
 };
+
+
+export const deleteProduct = async (product_id: number) => {
+    const client = new Client({
+        connectionString:
+            "postgresql://product_db_owner:npg_A0B9mZxIwLsg@ep-restless-mountain-a7xnqw88.ap-southeast-2.aws.neon.tech/product_db?sslmode=require",
+    });
+    try {
+        await client.connect();
+        const result = await client.query(
+            `DELETE FROM products WHERE id = $1 RETURNING *`,
+            [product_id]
+        );
+
+        if (result.rows.length === 0) {
+            return json({
+                success: false,
+                message: `Product with ID ${product_id} does not exist.`,
+            });
+        }
+    } catch (error: any) {
+        return json({
+            success: false,
+            message: "Failed to delete product.",
+            error: error.message || error,
+        });
+    } finally {
+        await client.end();
+    }
+};
+
+export const updateProduct = async (product: any) => {
+    const client = new Client({
+        connectionString:
+            "postgresql://product_db_owner:npg_A0B9mZxIwLsg@ep-restless-mountain-a7xnqw88.ap-southeast-2.aws.neon.tech/product_db?sslmode=require",
+    });
+
+    const { id, title, tags, created_at, updated_at } = product;
+
+    const Arraytags = [tags];
+    const fullTitle = product.variants.map((variant: any) => `${title}, ${variant.title}`).join(', ');
+    const sku = product.variants.map((variant: any) => variant.sku).join(', ');
+
+
+    try {
+        await client.connect();
+
+        const result = await client.query(
+            `UPDATE products
+             SET title = $1, tags = $2, sku = $3, created_at = $4, updated_at = $5
+             WHERE id = $6 RETURNING *`,
+            [fullTitle, Arraytags, sku, created_at, updated_at, id]
+        );
+
+        if (result.rows.length === 0) {
+            return json({
+                success: false,
+                message: `Product with ID ${id} does not exist.`,
+            });
+        }
+
+        return json({
+            success: true,
+            message: `Product with ID ${id} has been updated successfully.`,
+        });
+    } catch (error: any) {
+        return json({
+            success: false,
+            message: "Failed to update product.",
+            error: error.message || error,
+        });
+    } finally {
+        await client.end();
+    }
+};
+
